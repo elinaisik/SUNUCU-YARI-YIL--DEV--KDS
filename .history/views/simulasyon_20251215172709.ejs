@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Simülasyon - KDS</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<h2>Simülasyon & Karar Destek Sistemi</h2>
+
+<select id="urunSelect">
+  <option value="all">İşletme Geneli</option>
+  <option value="1">iPhone 16</option>
+  <option value="2">iPhone 17</option>
+  <option value="3">MacBook Air</option>
+  <option value="4">AirPods</option>
+  <option value="5">iPad</option>
+  <option value="6">iWatch</option>
+</select>
+
+<button onclick="runSim()">Simülasyonu Çalıştır</button>
+
+<p id="decision"></p>
+
+<canvas id="topicChart" height="120"></canvas>
+<h3>Alt Şikayet Etkisi</h3>
+<canvas id="subChart" height="120"></canvas>
+
+<script>
+let topicChart, subChart;
+
+async function runSim() {
+  const urun = document.getElementById("urunSelect").value;
+  const res = await fetch(`/simulasyon-data?urun=${urun}`);
+  const d = await res.json();
+
+  document.getElementById("decision").innerText =
+    "🧠 Karar Önerisi: " + d.decision;
+
+  if (topicChart) topicChart.destroy();
+
+  topicChart = new Chart(document.getElementById("topicChart"), {
+    type: "bar",
+    data: {
+      labels: d.topics.map(t => t.topic_adi),
+      datasets: [
+        { label: "Önce (%)", data: d.topics.map(t => t.oran) },
+        { label: "Sonra (%)", data: d.simulated.map(t => t.after) }
+      ]
+    }
+  });
+
+  if (subChart) subChart.destroy();
+
+  if (d.subImpact.length) {
+    subChart = new Chart(document.getElementById("subChart"), {
+      type: "bar",
+      data: {
+        labels: d.subImpact.map(s => s.subtopic_adi),
+        datasets: [
+          { label: "Önce", data: d.subImpact.map(s => s.before) },
+          { label: "Sonra", data: d.subImpact.map(s => s.after) }
+        ]
+      },
+      options: { indexAxis: "y" }
+    });
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Simülasyon - KDS</title>
+
+<style>
+body {
+  margin: 0;
+  display: flex;
+  background: #f4f5f7;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  padding: 0;
+  padding-bottom: 80px;
+  box-sizing: border-box;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+  position: relative;
+}
+.sidebar a {
+  display: block;
+  padding: 16px 24px;
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+}
+.sidebar a:hover { 
+  background: rgba(255,255,255,0.1); 
+  border-left-color: #4a90e2;
+  color: #fff;
+}
+
+.sidebar .logout-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  margin: 0 20px;
+}
+
+ .sidebar .logout-btn a {
+      background: #e74c3c;
+      border-radius: 8px;
+      font-weight: 600;
+       background: #e74c3c;
+      color: white;
+      border-left: none;
+      text-align: center;
+      color: white;
+    }
+
+.user-info {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info-name {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.user-info-email {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.content { 
+  flex: 1; 
+  padding: 30px; 
+}
+
+.content h1 {
+  color: #1a1a2e;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.card h3 {
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+}
+
+th {
+  padding: 14px 16px;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+td { 
+  padding: 14px 16px; 
+  border-bottom: 1px solid #f1f5f9; 
+  text-align: left;
+  color: #334155;
+  font-size: 14px;
+}
+
+tr:hover {
+  background: #f8fafc;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.red { background: #ef4444; }
+.orange { background: #facc15; }
+.green { background: #22c55e; }
+
+button {
+  padding: 14px 24px;
+  border: none;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+}
+
+.decision-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+}
+
+.decision-item.critical {
+  border-left-color: #ef4444;
+}
+
+.decision-item.warning {
+  border-left-color: #facc15;
+}
+
+.decision-item.success {
+  border-left-color: #22c55e;
+}
+
+.decision-icon {
+  font-size: 20px;
+  min-width: 24px;
+}
+
+.decision-text {
+  color: #334155;
+  line-height: 1.6;
+  font-size: 14px;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <a href="/">Anasayfa</a>
+  <a href="/sikayetler">Şikayetler</a>
+  <a href="/simulasyon">Simülasyon</a>
+  <div class="logout-btn">
+    <a href="/logout">Çıkış Yap</a>
+  </div>
+</div>
+
+<div class="content">
+
+<h1>Simülasyon Analizi</h1>
+
+<!-- ================= İŞLETME GENELİ ================= -->
+<div id="enterpriseArea">
+
+<div class="card">
+  <h3>Topic Bazlı Risk Durumu</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Şikayet %</th>
+        <th>Risk</th>
+      </tr>
+    </thead>
+    <tbody id="topicTable"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Karar Önerisi</h3>
+  <div id="decisionText">Yükleniyor...</div>
+</div>
+
+<div class="card">
+  <button onclick="runSimulation()">Çözüm Simülasyonunu Çalıştır</button>
+</div>
+
+<div class="card" id="chartCard" style="display: none;">
+  <canvas id="beforeAfterChart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+<script>
+let originalData = [];
+let chart;
+
+/* ===== İŞLETME GENELİ ===== */
+async function loadEnterprise() {
+  const res = await fetch("/simulasyon-isletme");
+  const data = await res.json();
+  originalData = data.topics;
+
+  const tbody = document.getElementById("topicTable");
+  tbody.innerHTML = "";
+
+  data.topics.forEach(t=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${t.topic_adi}</td>
+        <td>%${t.oran}</td>
+        <td><span class="dot ${t.color}"></span></td>
+      </tr>`;
+  });
+
+  const decision = document.getElementById("decisionText");
+  decision.innerHTML = "";
+
+  data.decision.forEach(d=>{
+    let cssClass="success";
+    
+    if(d.includes("🔴")) {
+      cssClass="critical";
+    } else if(d.includes("🟡")) {
+      cssClass="warning";
+    }
+
+    d=d.replace(/[🔴🟡🟢]/g,"").trim();
+
+    decision.innerHTML += `
+      <div class="decision-item ${cssClass}">
+        <span class="decision-text">${d}</span>
+      </div>`;
+  });
+}
+
+function runSimulation(){
+  const labels=originalData.map(t=>t.topic_adi);
+  const before=originalData.map(t=>t.oran);
+  const after=originalData.map(t=>t.risk!=="low"?Number((t.oran*0.6).toFixed(1)):t.oran);
+
+  // Grafik kartını göster
+  document.getElementById("chartCard").style.display = "block";
+
+  if(chart) chart.destroy();
+
+  chart=new Chart(document.getElementById("beforeAfterChart"),{
+    type:"bar",
+    data:{
+      labels,
+      datasets:[
+        {
+          label:"Simülasyon Öncesi",
+          data:before,
+          backgroundColor:"rgba(236,72,153,.7)",
+          borderRadius: 6,
+          barThickness: 20
+        },
+        {
+          label:"Simülasyon Sonrası",
+          data:after,
+          backgroundColor:"rgba(37,99,235,.8)",
+          borderRadius: 6,
+          barThickness: 20
+        }
+      ]
+    },
+    options:{
+      responsive: true,
+      maintainAspectRatio: false,
+      scales:{
+        y:{
+          beginAtZero:true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          }
+        },
+        x:{
+          grid: {
+            display: false
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      }
+    }
+  });
+}
+
+loadEnterprise();
+</script>
+
+</div>
+</body>
+</html>

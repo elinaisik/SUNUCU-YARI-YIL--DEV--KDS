@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Giriş Yap - KDS Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .auth-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      padding: 40px 30px;
+      text-align: center;
+    }
+
+    .auth-header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .auth-header p {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: #f5f5f5;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+
+    .auth-tab.active {
+      background: white;
+      color: #667eea;
+      border-bottom: 3px solid #667eea;
+    }
+
+    .auth-body {
+      padding: 40px 30px;
+    }
+
+    .form-container {
+      display: none;
+    }
+
+    .form-container.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .alert {
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alert-error {
+      background: #fee;
+      color: #c33;
+      border: 1px solid #fcc;
+    }
+
+    .alert-success {
+      background: #efe;
+      color: #3c3;
+      border: 1px solid #cfc;
+    }
+
+    .password-hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .loading {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-header">
+      <h1>KDS Dashboard</h1>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showTab('login')">Giriş Yap</button>
+      <button class="auth-tab" onclick="showTab('register')">Kayıt Ol</button>
+    </div>
+
+    <div class="auth-body">
+      <!-- Login Form -->
+      <div id="login-form" class="form-container active">
+        <div id="login-alert" class="alert"></div>
+        
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="login-username">Kullanıcı Adı</label>
+            <input type="text" id="login-username" name="username" required>
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Şifre</label>
+            <input type="password" id="login-password" name="password" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Giriş Yap</button>
+        </form>
+      </div>
+
+      <!-- Register Form -->
+      <div id="register-form" class="form-container">
+        <div id="register-alert" class="alert"></div>
+        
+        <form onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label for="register-username">Kullanıcı Adı</label>
+            <input type="text" id="register-username" name="username" required minlength="3">
+          </div>
+
+          <div class="form-group">
+            <label for="register-email">E-posta</label>
+            <input type="email" id="register-email" name="email" required>
+          </div>
+
+          <div class="form-group">
+            <label for="register-password">Şifre</label>
+            <input type="password" id="register-password" name="password" required minlength="6">
+            <div class="password-hint">En az 6 karakter olmalıdır</div>
+          </div>
+
+          <div class="form-group">
+            <label for="register-confirm-password">Şifre Tekrar</label>
+            <input type="password" id="register-confirm-password" name="confirmPassword" required minlength="6">
+          </div>
+
+          <button type="submit" class="btn btn-primary">Kayıt Ol</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab değiştirme
+    function showTab(tab) {
+      const tabs = document.querySelectorAll('.auth-tab');
+      const forms = document.querySelectorAll('.form-container');
+      
+      tabs.forEach(t => t.classList.remove('active'));
+      forms.forEach(f => f.classList.remove('active'));
+      
+      if (tab === 'login') {
+        tabs[0].classList.add('active');
+        document.getElementById('login-form').classList.add('active');
+        hideAlert('register-alert');
+      } else {
+        tabs[1].classList.add('active');
+        document.getElementById('register-form').classList.add('active');
+        hideAlert('login-alert');
+      }
+    }
+
+    // Alert gösterme
+    function showAlert(alertId, message, type) {
+      const alert = document.getElementById(alertId);
+      alert.textContent = message;
+      alert.className = `alert alert-${type} show`;
+    }
+
+    // Alert gizleme
+    function hideAlert(alertId) {
+      const alert = document.getElementById(alertId);
+      alert.classList.remove('show');
+    }
+
+    // Login işlemi
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const form = event.target;
+      const button = form.querySelector('button');
+      const formData = new FormData(form);
+      
+      button.classList.add('loading');
+      button.textContent = 'Giriş yapılıyor...';
+      hideAlert('login-alert');
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: formData.get('username'),
+            password: formData.get('password'),
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showAlert('login-alert', 'Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1000);
+        } else {
+          showAlert('login-alert', data.error || 'Giriş başarısız', 'error');
+          button.classList.remove('loading');
+          button.textContent = 'Giriş Yap';
+        }
+      } catch (error) {
+        showAlert('login-alert', 'Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
+        button.classList.remove('loading');
+        button.textContent = 'Giriş Yap';
+      }
+    }
+
+    // Register işlemi
+    async function handleRegister(event) {
+      event.preventDefault();
+      
+      const form = event.target;
+      const button = form.querySelector('button');
+      const formData = new FormData(form);
+      
+      button.classList.add('loading');
+      button.textContent = 'Kayıt yapılıyor...';
+      hideAlert('register-alert');
+      
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: formData.get('username'),
+            email: formData.get('email'),
+            password: formData.get('password'),
+            confirmPassword: formData.get('confirmPassword'),
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showAlert('register-alert', 'Kayıt başarılı! Giriş yapabilirsiniz.', 'success');
+          form.reset();
+          setTimeout(() => {
+            showTab('login');
+          }, 2000);
+        } else {
+          showAlert('register-alert', data.error || 'Kayıt başarısız', 'error');
+        }
+      } catch (error) {
+        showAlert('register-alert', 'Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
+      } finally {
+        button.classList.remove('loading');
+        button.textContent = 'Kayıt Ol';
+      }
+    }
+  </script>
+</body>
+</html>

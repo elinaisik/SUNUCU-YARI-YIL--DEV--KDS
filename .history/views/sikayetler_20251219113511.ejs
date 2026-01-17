@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Şikayetler - KDS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin: 0;
+  display: flex;
+  background: #f4f5f7;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  padding: 0;
+  padding-bottom: 80px;
+  box-sizing: border-box;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+  position: relative;
+}
+.sidebar a {
+  display: block;
+  padding: 16px 24px;
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+}
+.sidebar a:hover { 
+  background: rgba(255,255,255,0.1); 
+  border-left-color: #4a90e2;
+  color: #fff;
+}
+
+.sidebar .logout-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  margin: 0 20px;
+}
+
+ .sidebar .logout-btn a {
+      background: #e74c3c;
+      border-radius: 8px;
+      font-weight: 600;
+       background: #e74c3c;
+      color: white;
+      border-left: none;
+      text-align: center;
+      color: white;
+    }
+
+.user-info {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info-name {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.user-info-email {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* CONTENT */
+.content {
+  flex: 1;
+  padding: 30px;
+}
+
+.content h1 {
+  color: #1a1a2e;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+/* DROPDOWN MENU */
+.content select {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: white;
+  color: #1a1a2e;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  min-width: 180px;
+}
+
+.content select:hover {
+  border-color: #4a90e2;
+}
+
+.content select:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* KART */
+.chart-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.chart-box h3 {
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+/* GENEL */
+.chart-general {
+  height: 360px;
+  position: relative;
+}
+.chart-general canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ROW */
+.chart-row {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+/* PIE / BAR */
+.chart-small {
+  width: 520px;
+  height: 360px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.chart-small canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 🔥 Departman pie daha küçük olsun */
+.chart-dept-pie {
+  max-width: 420px;
+  height: 320px;
+}
+.chart-dept-bar {
+  max-width: 520px;
+  height: 320px;
+}
+
+/* DROPDOWN */
+#urunSelect {
+  display: none;
+  margin-left: 10px;
+}
+
+/* ✅ RİSK KARE KART (satış grafiğinin sağı) */
+.risk-square {
+  width: 220px;
+  height: 220px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: #fff;
+}
+.risk-square .score {
+  font-size: 40px;
+  line-height: 1;
+}
+.risk-square .level {
+  font-size: 18px;
+  margin-top: 8px;
+}
+
+/* ✅ Satış grafiği + risk kart yan yana */
+.metrics-row {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.metrics-row .metrics-chart {
+  width: 520px;
+  height: 360px;
+}
+
+/* Karar önerisi dot */
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.red { background:#ef4444; }
+.orange { background:#facc15; }
+.green { background:#22c55e; }
+
+/* Simülasyon butonu */
+.sim-btn{
+  padding: 14px 24px;
+  border: none;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.sim-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+}
+
+/* Before/After alanı */
+.beforeAfterWrap {
+  margin-top: 16px;
+  height: 360px;
+}
+.beforeAfterWrap canvas{
+  width:100% !important;
+  height:100% !important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <a href="/">Anasayfa</a>
+  <a href="/sikayetler">Şikayetler</a>
+  <a href="/simulasyon">Simülasyon</a>
+  <div class="logout-btn">
+    <a href="/logout">Çıkış Yap</a>
+  </div>
+</div>
+
+<div class="content">
+
+<h1>Şikayet Analizi</h1>
+
+<select id="mainSelect">
+  <option value="genel">Genel</option>
+  <option value="urun">Ürün Bazlı</option>
+  <option value="departman">Departman Bazlı</option>
+</select>
+
+<select id="urunSelect">
+  <option disabled selected>Ürün Seç</option>
+  <option value="1">iPhone 16</option>
+  <option value="2">iPhone 17</option>
+  <option value="3">MacBook Air 13 inch</option>
+  <option value="4">AirPods</option>
+  <option value="5">iPad</option>
+  <option value="6">iWatch</option>
+</select>
+
+<!-- GENEL -->
+<div id="genelArea" class="chart-box" style="margin-top:16px;">
+  <h3>Genel Şikayet Dağılımı</h3>
+  <div class="chart-general">
+    <canvas id="genelChart"></canvas>
+  </div>
+</div>
+
+<!-- ÜRÜN -->
+<div id="urunArea" style="display:none; margin-top:16px;">
+
+  <!-- 1. satır: pie + alt şikayetler (dokunmadım) -->
+  <div class="chart-row">
+    <div class="chart-box chart-small chart-urun-pie">
+      <h3>Ürün Şikayet Dağılımı</h3>
+      <canvas id="urunPie"></canvas>
+    </div>
+
+    <div class="chart-box chart-small" id="urunSubCard" style="display:none;">
+      <h3>Alt Şikayetler</h3>
+      <canvas id="urunSubBar"></canvas>
+    </div>
+  </div>
+
+  <!-- 2. satır: satış-şikayet-memnuniyet + risk kare kart (DİĞERLERİNİ BOZMADAN) -->
+  <div class="metrics-row">
+    <div class="chart-box chart-small metrics-chart">
+      <h3>Satış - Şikayet - Memnuniyet Skoru</h3>
+      <canvas id="urunBar"></canvas>
+    </div>
+
+    <div class="chart-box" style="display:flex; justify-content:center; align-items:center; padding:16px;">
+      <div id="riskSquare" class="risk-square" style="background:#94a3b8;">
+        <div class="score" id="riskScoreText">--</div>
+        <div class="level" id="riskLevelText">Risk</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Karar önerisi -->
+  <div class="chart-box" style="margin-top:16px;">
+    <h3>Karar Önerisi</h3>
+    <div id="productDecision">Ürün seçiniz...</div>
+  </div>
+
+  <!-- Simülasyon butonu -->
+  <div class="chart-box" style="margin-top:16px;">
+    <button class="sim-btn" onclick="runProductSimulation()">Çözüm Simülasyonunu Çalıştır</button>
+  </div>
+
+  <!-- Before/After chart -->
+  <div class="chart-box" id="simulationResultCard" style="display:none; margin-top:16px;">
+    <h3>Simülasyon Sonrası Beklenen Etki Analizi</h3>
+    <div class="beforeAfterWrap">
+      <canvas id="productBeforeAfterChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- DEPARTMAN (dokunmadım) -->
+<div id="departmanArea" style="display:none; margin-top:16px;">
+  <div class="chart-row">
+    <div class="chart-box chart-small chart-dept-pie">
+      <h3>Departman Bazlı Şikayetler</h3>
+      <canvas id="departmanPie"></canvas>
+    </div>
+
+    <div class="chart-box chart-small chart-dept-bar" id="departmanSubCard" style="display:none;">
+      <h3>Departman Alt Şikayetleri</h3>
+      <canvas id="departmanBar"></canvas>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ---------------- GENEL ---------------- */
+const topicLabels = <%- JSON.stringify(topicLabels || []) %>;
+const topicValues = <%- JSON.stringify(topicValues || []) %>;
+const productDistributions = <%- JSON.stringify(productDistributions || []) %>;
+
+new Chart(document.getElementById("genelChart"), {
+  type: "bar",
+  data: { 
+    labels: topicLabels, 
+    datasets: [{ 
+      data: topicValues,
+      backgroundColor: "#4a90e2",
+      borderRadius: 6
+    }] 
+  },
+  options: {
+    indexAxis: "y",
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const d = productDistributions[ctx.dataIndex] || [];
+            return ctx.raw + " — " + d.map(x => `${x.urun_adi} (${x.sayi})`).join(", ");
+          }
+        }
+      }
+    }
+  }
+});
+
+/* ---------------- DROPDOWN ---------------- */
+const mainSelect = document.getElementById("mainSelect");
+const urunSelect = document.getElementById("urunSelect");
+const genelArea = document.getElementById("genelArea");
+const urunArea = document.getElementById("urunArea");
+const departmanArea = document.getElementById("departmanArea");
+
+mainSelect.addEventListener("change", () => {
+  genelArea.style.display = "none";
+  urunArea.style.display = "none";
+  departmanArea.style.display = "none";
+  urunSelect.style.display = "none";
+
+  if (mainSelect.value === "genel") genelArea.style.display = "block";
+  if (mainSelect.value === "urun") urunSelect.style.display = "inline-block";
+  if (mainSelect.value === "departman") loadDepartmanCharts();
+});
+
+/* ---------------- ÜRÜN ---------------- */
+let urunPieChart, urunSubBarChart, urunBarChart;
+let beforeAfterChart = null;
+let currentRiskScore = 0;
+
+
+// ✅ simülasyon için saklanacak veriler
+let simLabels = [];
+let simBefore = [];
+
+// ✅ hariç tutulacaklar (before/after için)
+const EXCLUDE_FOR_SIM = ["müşteri hizmetleri","kargo","paketleme"];
+
+const productDecisionEl = document.getElementById("productDecision");
+const riskSquare = document.getElementById("riskSquare");
+const riskScoreText = document.getElementById("riskScoreText");
+const riskLevelText = document.getElementById("riskLevelText");
+
+urunSelect.addEventListener("change", async () => {
+  const res = await fetch(`/urun-analiz?urun=${urunSelect.value}`);
+  const d = await res.json();
+
+  urunArea.style.display = "block";
+  
+  // Yeni ürün seçildiğinde alt şikayet kartını gizle
+  document.getElementById("urunSubCard").style.display = "none";
+
+  /* ---------- TOPIC PIE (dokunmadım) ---------- */
+  if (urunPieChart) urunPieChart.destroy();
+
+  urunPieChart = new Chart(
+    document.getElementById("urunPie"),
+    {
+      type: "pie",
+      data: {
+        labels: d.pieLabels,
+        datasets: [{
+          data: d.pieValues,
+          backgroundColor: [
+            "#2563eb","#dc2626","#16a34a",
+            "#f97316","#7c3aed","#0891b2",
+            "#ca8a04","#be185d"
+          ],
+          radius: "70%"
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "top" } },
+        onClick: (e, els) => {
+          if (!els.length) return;
+          const topic = d.pieLabels[els[0].index];
+          drawUrunSub(topic, d.subRows);
+        }
+      }
+    }
+  );
+
+  /* ---------- SATIŞ / ŞİKAYET / MEM (dokunmadım) ---------- */
+  if (urunBarChart) urunBarChart.destroy();
+
+  urunBarChart = new Chart(
+    document.getElementById("urunBar"),
+    {
+      type: "bar",
+      data: {
+        labels: ["Satış", "Şikayet", "Memnuniyet"],
+        datasets: [
+          {
+            data: [d.satis, d.sikayet, null],
+            backgroundColor: ["#6366f1","#ef4444","transparent"],
+            yAxisID: "y"
+          },
+          {
+            data: [null, null, d.memScore],
+            backgroundColor: "#0f172a",
+            yAxisID: "y1"
+          }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true },
+          y1: {
+            beginAtZero: true,
+            max: 5,
+            position: "right",
+            grid: { drawOnChartArea: false }
+          }
+        }
+      }
+    }
+  );
+
+  /* ---------- ✅ RİSK KARE KART (buraya koyduk) ---------- */
+  riskSquare.style.background = d.riskColor;
+  riskScoreText.textContent = d.riskScore;
+  riskLevelText.textContent = d.riskLevel;
+  currentRiskScore = Number(d.riskScore);
+
+
+  /* ---------- ✅ Before/After için filtreli veriyi hazırla ---------- */
+  const pairs = (d.pieLabels || []).map((lab, i) => ({
+    lab,
+    val: Number(d.pieValues[i] || 0),
+    key: String(lab || "").trim().toLowerCase()
+  }));
+
+  const filteredPairs = pairs.filter(p => !EXCLUDE_FOR_SIM.includes(p.key));
+
+  simLabels = filteredPairs.map(p => p.lab);
+  simBefore = filteredPairs.map(p => p.val);
+
+  /* ---------- ✅ Karar önerisi (işletme geneli mantığı gibi) ---------- */
+  renderProductDecision(simLabels, simBefore);
+
+  // eski çizilmiş sim grafiğini ürün değişince temizle
+  if (beforeAfterChart) {
+    beforeAfterChart.destroy();
+    beforeAfterChart = null;
+  }
+  
+  // Simülasyon sonuç kartını gizle
+  document.getElementById("simulationResultCard").style.display = "none";
+});
+
+/* ---------- SUBTOPIC BAR (dokunmadım) ---------- */
+function drawUrunSub(topic, rows) {
+  const cleanTopic = topic.trim().toLowerCase();
+
+  const filtered = rows
+    .filter(r => r.topic_adi.trim().toLowerCase() === cleanTopic)
+    .sort((a, b) => b.adet - a.adet);
+
+  if (!filtered.length) return;
+
+  // Kartı görünür yap
+  document.getElementById("urunSubCard").style.display = "block";
+
+  if (urunSubBarChart) urunSubBarChart.destroy();
+
+
+
+/* ---------- ✅ Ürün karar önerisi üret (işletme geneli gibi) ---------- */
+function getDeptByTopicName(topicName){
+  const t = String(topicName || "").toLowerCase();
+  if (t.includes("batarya") || t.includes("şarj") || t.includes("ekran") || t.includes("bağlantı") ||
+      t.includes("ses") || t.includes("hoparlör") || t.includes("klavye") || t.includes("kamera") ||
+      t.includes("performans") || t.includes("yazılım")) return "donanim";
+  return "diger";
+}
+
+function renderProductDecision(labels, values){
+  // basit risk sınıflaması: >=12 kırmızı, >=10 sarı
+  const deptScore = { donanim:0, diger:0 };
+  for (let i=0; i<labels.length; i++){
+    const oran = Number(values[i] || 0);
+    const dept = getDeptByTopicName(labels[i]);
+    if (oran >= 12) deptScore[dept] += 2;
+    else if (oran >= 10) deptScore[dept] += 1;
+  }
+
+  const decisions = [];
+  let hasGreen = false;
+
+  if (deptScore.donanim >= 3) decisions.push({c:"red", t:"Donanım iyileştirme ve ürün revizyonu önerilir"});
+  else if (deptScore.donanim >= 1) decisions.push({c:"orange", t:"Donanım kaynaklı şikayetler izlenmeli ve teknik analiz yapılmalı"});
+  else hasGreen = true;
+
+  if (hasGreen) decisions.push({c:"green", t:"Düşük riskli alanlarda izleme yeterlidir"});
+
+  productDecisionEl.innerHTML = decisions.map(d => `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <span class="dot ${d.c}"></span>
+      <span>${d.t}</span>
+    </div>
+  `).join("");
+}
+
+/* ---------- ✅ Simülasyon butonu: Before/After çiz ---------- */
+function runProductSimulation(){
+  if (!simLabels.length) {
+    alert("Önce ürün seçmelisin.");
+    return;
+  }
+
+  // Simülasyon sonuç kartını görünür yap
+  document.getElementById("simulationResultCard").style.display = "block";
+
+  // mevcut şikayetler
+  const after = simBefore.map(v => Number((v * 0.6).toFixed(1)));
+
+  // 🔥 risk için önce / sonra
+  const riskAfter = Number((currentRiskScore * 0.6).toFixed(1));
+
+  if (beforeAfterChart) beforeAfterChart.destroy();
+
+  beforeAfterChart = new Chart(
+    document.getElementById("productBeforeAfterChart"),
+    {
+      type: "bar",
+      data: {
+        labels: [...simLabels, "Risk Skoru"],
+        datasets: [
+          {
+            label: "Simülasyon Öncesi",
+            data: [...simBefore, currentRiskScore],
+            backgroundColor: "rgba(236,72,153,.6)"
+          },
+          {
+            label: "Simülasyon Sonrası",
+            data: [...after, riskAfter],
+            backgroundColor: "rgba(37,99,235,.7)"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: "Şikayet Oranı / Risk Skoru"
+            }
+          },
+          x: {
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45
+            }
+          }
+        }
+      }
+    }
+  );
+}
+
+
+/* ---------------- DEPARTMAN (dokunmadım) ---------------- */
+let deptPie, deptBar;
+
+async function loadDepartmanCharts(){
+  departmanArea.style.display = "block";
+  
+  // Departman değiştiğinde alt şikayet kartını gizle
+  document.getElementById("departmanSubCard").style.display = "none";
+
+  const res = await fetch("/departman-analiz");
+  const d = await res.json();
+
+  if (deptPie) deptPie.destroy();
+
+  deptPie = new Chart(document.getElementById("departmanPie"), {
+    type: "pie",
+    data: {
+      labels: d.pieLabels,
+      datasets: [{
+        data: d.pieValues,
+        backgroundColor: ["#ef4444", "#3b82f6", "#facc15"],
+        borderWidth: 2,
+        borderColor: "#ffffff",
+        radius: "70%"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "top" } },
+      onClick: (e, els) => {
+        if (!els.length) return;
+        drawSub(d.pieLabels[els[0].index], d.subRows);
+      }
+    }
+  });
+}
+
+function drawSub(deptName, rows) {
+  const filtered = rows.filter(r => r.topic_adi === deptName).sort((a,b)=>b.adet-a.adet);
+
+  // Kartı görünür yap
+  document.getElementById("departmanSubCard").style.display = "block";
+
+  if (deptBar) deptBar.destroy();
+
+  deptBar = new Chart(document.getElementById("departmanBar"), {
+    type: "bar",
+    data: {
+      labels: filtered.map(r => r.subtopic_adi),
+      datasets: [{ data: filtered.map(r => r.adet), backgroundColor: "#14b8a6" }]
+    },
+    options: {
+      indexAxis: "y",
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true } }
+    }
+  });
+}
+</script>
+
+</body>
+</html>

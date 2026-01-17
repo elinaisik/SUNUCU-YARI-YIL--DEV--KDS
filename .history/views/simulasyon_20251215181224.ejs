@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Simülasyon - KDS</title>
+
+<style>
+body { font-family: Arial; background:#f4f5f7; padding:20px; }
+.card { background:#fff; padding:20px; border-radius:14px; margin-bottom:20px; }
+table { width:100%; border-collapse:collapse; }
+th,td { padding:10px; border-bottom:1px solid #eee; text-align:left; }
+.dot {
+  width:14px; height:14px; border-radius:50%;
+  display:inline-block;
+}
+.red { background:#ef4444; }
+.orange { background:#facc15; }
+.green { background:#22c55e; }
+button {
+  padding:12px 20px;
+  border:none;
+  background:#2563eb;
+  color:white;
+  font-size:16px;
+  border-radius:10px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>İşletme Geneli Simülasyon</h1>
+
+<div class="card">
+  <h3>Topic Bazlı Risk Durumu</h3>
+  <table id="topicTable">
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Şikayet %</th>
+        <th>Risk</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Karar Önerisi</h3>
+  <p id="decisionText">Hesaplanıyor...</p>
+</div>
+
+<div class="card">
+  <button onclick="runSimulation()">Çözüm Simülasyonunu Çalıştır</button>
+  <div id="afterArea" style="margin-top:16px;"></div>
+</div>
+
+<script>
+let originalData = [];
+
+async function loadEnterprise() {
+  const res = await fetch("/simulasyon-isletme");
+  const d = await res.json();
+
+  originalData = d.topics;
+
+  const tbody = document.querySelector("#topicTable tbody");
+  tbody.innerHTML = "";
+
+  d.topics.forEach(t => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${t.topic_adi}</td>
+        <td>%${t.oran}</td>
+        <td><span class="dot ${t.color}"></span></td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("decisionText").innerText =
+    "🧠 " + d.decision;
+}
+
+function runSimulation() {
+  const improvementRate = 0.40;
+
+  const after = originalData.map(t => {
+    if (t.risk !== "low") {
+      return {
+        ...t,
+        newOran: Number((t.oran * (1 - improvementRate)).toFixed(1))
+      };
+    }
+    return { ...t, newOran: t.oran };
+  });
+
+  let html = "<h4>Simülasyon Sonrası</h4><ul>";
+  after.forEach(a => {
+    html += `<li>${a.topic_adi}: %${a.oran} → %${a.newOran}</li>`;
+  });
+  html += "</ul>";
+
+  document.getElementById("afterArea").innerHTML = html;
+}
+
+loadEnterprise();
+</script>
+
+</body>
+</html>
