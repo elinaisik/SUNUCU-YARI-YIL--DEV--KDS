@@ -35,36 +35,8 @@ Mevcut KDS kapsamında:
 * EJS (arayüz katmanı)
 * MVC Architecture
 * RESTful API
-* dotenv
 
----
 
-## 4. Mevcut Proje Klasör Yapısı
-
-```
-kds_api/
- ├── routes/
- │    ├── authRoutes.js
- │    ├── homeRoutes.js
- │    ├── analysisRoutes.js
- │
- ├── services/
- │    ├── authService.js
- │    ├── analysisService.js
- │
- ├── views/
- │    ├── login.ejs
- │    ├── home.ejs
- │    ├── sikayetler.ejs
- │    └── simulasyon.ejs
- │
- ├── config/
- │    └── db.js
- │
- ├── server.js
- ├── .env.example
- └── README.md
-```
 
 ## 5. MVC Mimarisinin Projede Uygulanışı
 
